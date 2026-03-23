@@ -1,0 +1,156 @@
+:root {
+  /* Background colors */
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f1626;
+  --bg-surface: #1e2a45;
+  --bg-hover: #243352;
+  --bg-active: #2a3d5f;
+
+  /* Chart colors */
+  --chart-bg: #0d1117;
+  --chart-grid: #1c2333;
+  --chart-grid-major: #283044;
+  --chart-crosshair: #4a5568;
+  --chart-candle-up: #26a69a;
+  --chart-candle-down: #ef5350;
+  --chart-candle-up-fill: #26a69a;
+  --chart-candle-down-fill: #ef5350;
+  --chart-volume: #2d4a7a40;
+  --chart-volume-up: #26a69a40;
+  --chart-volume-down: #ef535040;
+
+  /* Text colors */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #60a5fa;
+
+  /* Border colors */
+  --border-primary: #2d3748;
+  --border-secondary: #1e293b;
+  --border-focus: #3b82f6;
+
+  /* Accent colors */
+  --accent-primary: #3b82f6;
+  --accent-success: #22c55e;
+  --accent-warning: #eab308;
+  --accent-danger: #ef4444;
+
+  /* Planet line default colors */
+  --planet-sun: #fbbf24;
+  --planet-moon: #c4b5fd;
+  --planet-mercury: #67e8f9;
+  --planet-venus: #f9a8d4;
+  --planet-mars: #fca5a5;
+  --planet-jupiter: #86efac;
+  --planet-saturn: #a3a3a3;
+  --planet-uranus: #7dd3fc;
+  --planet-neptune: #818cf8;
+  --planet-pluto: #d4d4d8;
+
+  /* Spacing */
+  --space-xs: 2px;
+  --space-sm: 4px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-2xl: 24px;
+
+  /* Typography */
+  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Consolas', 'SF Mono', 'Fira Code', monospace;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-md: 13px;
+  --font-size-lg: 15px;
+
+  /* Layout */
+  --menubar-height: 28px;
+  --toolbar-height: 36px;
+  --statusbar-height: 24px;
+  --chart-header-height: 26px;
+  --chart-footer-height: 22px;
+  --bottom-toolbar-height: 28px;
+  --tabbar-height: 28px;
+  --sidebar-width: 220px;
+  --axis-width: 70px;
+  --axis-height: 24px;
+
+  /* Misc */
+  --border-radius: 4px;
+  --transition-fast: 100ms ease;
+  --transition-normal: 200ms ease;
+}
+
+/* ─── Light Theme ────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg-primary: #f0f2f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8eaed;
+  --bg-surface: #f5f6f8;
+  --bg-hover: #e2e5ea;
+  --bg-active: #d4d8e0;
+
+  --chart-bg: #ffffff;
+  --chart-grid: #e8eaed;
+  --chart-grid-major: #d0d4dc;
+  --chart-crosshair: #9ca3af;
+  --chart-candle-up: #16a34a;
+  --chart-candle-down: #dc2626;
+  --chart-candle-up-fill: #16a34a;
+  --chart-candle-down-fill: #dc2626;
+  --chart-volume: #94a3b840;
+  --chart-volume-up: #16a34a40;
+  --chart-volume-down: #dc262640;
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #94a3b8;
+  --text-accent: #2563eb;
+
+  --border-primary: #d0d4dc;
+  --border-secondary: #e2e5ea;
+  --border-focus: #2563eb;
+
+  --accent-primary: #2563eb;
+  --accent-success: #16a34a;
+  --accent-warning: #ca8a04;
+  --accent-danger: #dc2626;
+}
+
+/* ─── Vibe Theme (warm pastel dark) ──────────────────────────────── */
+:root[data-theme="vibe"] {
+  --bg-primary: #2a2438;
+  --bg-secondary: #342d45;
+  --bg-tertiary: #1f1a2e;
+  --bg-surface: #3a3250;
+  --bg-hover: #453c5c;
+  --bg-active: #514768;
+
+  --chart-bg: #1e1928;
+  --chart-grid: #332c44;
+  --chart-grid-major: #443b5a;
+  --chart-crosshair: #7c6f9b;
+  --chart-candle-up: #86efac;
+  --chart-candle-down: #fca5a5;
+  --chart-candle-up-fill: #86efac;
+  --chart-candle-down-fill: #fca5a5;
+  --chart-volume: #a78bfa40;
+  --chart-volume-up: #86efac40;
+  --chart-volume-down: #fca5a540;
+
+  --text-primary: #e8dff5;
+  --text-secondary: #b8afd0;
+  --text-muted: #8a7faa;
+  --text-accent: #c4b5fd;
+
+  --border-primary: #4a4062;
+  --border-secondary: #3a3250;
+  --border-focus: #a78bfa;
+
+  --accent-primary: #a78bfa;
+  --accent-success: #86efac;
+  --accent-warning: #fde68a;
+  --accent-danger: #fca5a5;
+}

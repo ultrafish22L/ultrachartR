@@ -1,0 +1,29 @@
+appId: com.ultrafish.ultrachart
+productName: UltraChart
+copyright: Copyright © 2025 UltraFish
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - proxy/cache/.gitkeep
+  - public/**/*.uchart
+  - node_modules/**/*
+
+extraMetadata:
+  main: dist-electron/electron/main.js
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false

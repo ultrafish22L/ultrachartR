@@ -1,0 +1,115 @@
+.tabBar {
+  display: flex;
+  align-items: stretch;
+  height: 28px;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-secondary);
+  padding: 0 4px;
+  gap: 1px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.tabBar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tabBar::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 2px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  min-width: 80px;
+  max-width: 200px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  margin-top: 3px;
+  transition: background 0.1s, color 0.1s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.tabActive {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
+  font-weight: 600;
+}
+
+.tabTitle {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.downloadDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #facc15;
+  flex-shrink: 0;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.liveDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  background: rgba(180, 40, 40, 0.25);
+  border: 1px solid rgba(180, 40, 40, 0.4);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.1s, color 0.1s, background 0.1s, border-color 0.1s;
+}
+
+/* Hide close button by default on hover-capable devices; always visible on touch */
+@media (hover: hover) {
+  .closeBtn {
+    opacity: 0;
+  }
+  .tab:hover .closeBtn {
+    opacity: 1;
+  }
+}
+
+.closeBtn:hover {
+  background: rgba(180, 40, 40, 0.5);
+  border-color: rgba(180, 40, 40, 0.7);
+  color: white;
+}

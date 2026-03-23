@@ -1,0 +1,96 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--menubar-height);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-secondary);
+  padding: 0 var(--space-lg);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  flex-shrink: 0;
+}
+
+.left, .center, .right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.left {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.message {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.msgInfo {
+  color: var(--text-secondary);
+}
+
+.msgWarn {
+  color: #fbbf24;
+}
+
+.msgError {
+  color: var(--accent-danger);
+}
+
+.center {
+  flex: 1;
+  justify-content: center;
+}
+
+.right {
+  min-width: 0;
+  flex-shrink: 0;
+  gap: var(--space-sm);
+}
+
+.ohlc {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.price {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.clock {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.tzSelect {
+  appearance: none;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius);
+  padding: 1px 6px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  cursor: pointer;
+  outline: none;
+}
+
+.tzSelect:hover {
+  background: var(--bg-active);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+.tzSelect:focus {
+  border-color: var(--border-focus);
+}

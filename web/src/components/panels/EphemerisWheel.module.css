@@ -1,0 +1,144 @@
+.window {
+  position: fixed;
+  z-index: 900;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: grab;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
+  border-radius: 6px 6px 0 0;
+}
+
+.header:active {
+  cursor: grabbing;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-right: auto;
+}
+
+.perspectiveGroup {
+  display: flex;
+  gap: 2px;
+}
+
+.radioLabel {
+  position: relative;
+  cursor: pointer;
+}
+
+.radioInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.radioInput:focus-visible + .radioText {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.radioText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-secondary);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.radioText:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.radioActive {
+  background: var(--bg-active);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  background: rgba(180, 40, 40, 0.25);
+  border: 1px solid rgba(180, 40, 40, 0.4);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.closeBtn:hover {
+  background: rgba(180, 40, 40, 0.5);
+  border-color: rgba(180, 40, 40, 0.7);
+  color: white;
+}
+
+.canvasWrap {
+  position: relative;
+}
+
+.canvas {
+  display: block;
+  border-radius: 0 0 6px 6px;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-radius: 0 0 6px 0;
+}
+
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  opacity: 0.4;
+}
+
+.resizeHandle:hover::after {
+  opacity: 0.7;
+}

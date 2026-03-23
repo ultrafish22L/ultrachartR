@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-electron/
+package-lock.json
+*.tsbuildinfo
+__pycache__/
+.pytest_cache/
+legacy/

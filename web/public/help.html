@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UltraChartWeb Help</title>
+<style>
+  :root {
+    --bg: #0f1923;
+    --bg2: #1a2635;
+    --bg3: #243447;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --accent: #3b82f6;
+    --border: #2d3f52;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .version {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 20px;
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  h3 {
+    font-size: 16px;
+    margin: 20px 0 8px;
+    color: var(--text);
+  }
+  p, li {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  ul, ol {
+    padding-left: 24px;
+    margin-bottom: 12px;
+  }
+  li { margin-bottom: 4px; }
+  kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-family: 'Consolas', monospace;
+    color: var(--text);
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .card h3 { margin-top: 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--text);
+    font-weight: 600;
+    background: var(--bg2);
+  }
+  td { color: var(--text2); }
+  .toc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .toc h3 { margin-top: 0; color: var(--text); }
+  .toc a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 0; }
+  .toc li { margin-bottom: 4px; }
+  .toc li::before {
+    content: '\2022';
+    color: var(--accent);
+    margin-right: 8px;
+  }
+  a { color: var(--accent); }
+  .icon-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  .icon-box {
+    width: 28px;
+    height: 28px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .swatch {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 12px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1 id="app-title">UltraChartWeb Help</h1>
+<p class="version" id="app-version"></p>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ul>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#loading-charts">Loading Charts</a></li>
+    <li><a href="#chart-navigation">Chart Navigation</a></li>
+    <li><a href="#chart-header">Chart Header Controls</a></li>
+    <li><a href="#chart-footer">Chart Footer Controls</a></li>
+    <li><a href="#drawing-tools">Drawing Tools</a></li>
+    <li><a href="#style-controls">Color, Style &amp; Font Controls</a></li>
+    <li><a href="#planet-lines">Planet Lines (Astro)</a></li>
+    <li><a href="#multi-chart">Multi-Chart Workspace</a></li>
+    <li><a href="#time-modes">Time Modes &amp; Session Bands</a></li>
+    <li><a href="#live-streaming">Live Streaming</a></li>
+    <li><a href="#file-operations">File Operations</a></li>
+    <li><a href="#preferences">Preferences</a></li>
+    <li><a href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+    <li><a href="#menus">Menu Reference</a></li>
+  </ul>
+</div>
+
+<!-- Getting Started -->
+<h2 id="getting-started">Getting Started</h2>
+<p>UltraChartWeb is a financial charting application designed for analyzing security price data with unique astrological planet line overlays. The interface follows a familiar MDI (Multiple Document Interface) pattern with a menu bar, toolbar, chart workspace, and status bar.</p>
+<p>When you first open the app, you'll see an empty workspace. Load a chart using one of these methods:</p>
+<ul>
+  <li>Press <kbd>Ctrl</kbd>+<kbd>L</kbd> to open the Import/Load dialog</li>
+  <li>Go to <strong>File &gt; Import / Load...</strong></li>
+  <li>Load built-in sample data via <strong>Help &gt; Load Sample: ZS Daily</strong> or <strong>ZS 5-min</strong></li>
+</ul>
+
+<!-- Loading Charts -->
+<h2 id="loading-charts">Loading Charts</h2>
+
+<div class="card">
+  <h3>Sample Data (No Connection Required)</h3>
+  <p>Use <strong>Help &gt; Load Sample: ZS Daily</strong> or <strong>Help &gt; Load Sample: ZS 5-min</strong> to instantly load built-in Soybean (ZS) futures data. This works without any TWS connection.</p>
+</div>
+
+<div class="card">
+  <h3>From TWS (Interactive Brokers)</h3>
+  <p>If the TWS bridge server is running and connected to Trader Workstation:</p>
+  <ol>
+    <li>Press <kbd>Ctrl</kbd>+<kbd>L</kbd> or use <strong>File &gt; Import / Load...</strong></li>
+    <li>Search for a symbol (e.g., "ZS" for Soybeans)</li>
+    <li>Select the contract from the search results</li>
+    <li>Choose the time interval (5-min, 15-min, daily, etc.)</li>
+    <li>Click <strong>Import</strong> to download historical data</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h3>From Cache Files</h3>
+  <p>Previously downloaded data is saved as cache files. In the Import dialog, the <strong>Cache</strong> tab lists all available cache files. Click one to load it, or use <strong>Sync</strong> to update it with the latest bars before loading.</p>
+</div>
+
+<div class="card">
+  <h3>From .uchart Files</h3>
+  <p>Use <strong>File &gt; Open File...</strong> (<kbd>Ctrl</kbd>+<kbd>O</kbd>) to open a previously saved .uchart file, which preserves chart settings, drawing objects, and planet lines.</p>
+</div>
+
+<!-- Chart Navigation -->
+<h2 id="chart-navigation">Chart Navigation</h2>
+<table>
+  <tr><th>Action</th><th>How</th></tr>
+  <tr><td>Pan left/right</td><td>Click and drag on the chart area</td></tr>
+  <tr><td>Zoom in</td><td>Scroll wheel up, or <kbd>+</kbd> button in footer</td></tr>
+  <tr><td>Zoom out</td><td>Scroll wheel down, or <kbd>&minus;</kbd> button in footer</td></tr>
+  <tr><td>Reset zoom</td><td>Click <strong>1:1</strong> button in the chart footer</td></tr>
+  <tr><td>Scroll to position</td><td>Drag the scrollbar slider in the chart footer</td></tr>
+  <tr><td>Crosshair</td><td>Move mouse over chart (shows price/time at cursor)</td></tr>
+</table>
+
+<!-- Chart Header -->
+<h2 id="chart-header">Chart Header Controls</h2>
+<p>Each chart has a compact header bar showing the chart title, exchange badge, and control buttons:</p>
+<table>
+  <tr><th>Control</th><th>Description</th></tr>
+  <tr><td><strong>Title</strong></td><td>Shows the chart name (filename or symbol) and exchange</td></tr>
+  <tr><td><strong>Style buttons</strong></td><td>Switch between Candlestick, Bar, and Line chart styles</td></tr>
+  <tr><td><strong>Volume icon</strong></td><td>Toggle the volume bars overlay on/off (default: off)</td></tr>
+  <tr><td><strong>Compress icon</strong></td><td>Toggle between Natural and Compressed time modes</td></tr>
+  <tr><td><strong>&times; button</strong></td><td>Close this chart</td></tr>
+</table>
+
+<!-- Chart Footer -->
+<h2 id="chart-footer">Chart Footer Controls</h2>
+<p>The footer at the bottom of each chart provides scrolling and zoom controls:</p>
+<table>
+  <tr><th>Control</th><th>Description</th></tr>
+  <tr><td><strong>Scrollbar</strong></td><td>Drag to scroll through the price history. Position syncs with mouse panning.</td></tr>
+  <tr><td><strong>&minus;</strong></td><td>Zoom out (show more bars)</td></tr>
+  <tr><td><strong>+</strong></td><td>Zoom in (show fewer bars, more detail)</td></tr>
+  <tr><td><strong>1:1</strong></td><td>Reset zoom to default level</td></tr>
+</table>
+
+<!-- Drawing Tools -->
+<h2 id="drawing-tools">Drawing Tools</h2>
+<p>The drawing tools are located on the left side of the toolbar. Click a tool to activate it, then click/drag on the chart to place the object. Click the active tool again to deselect it.</p>
+<table>
+  <tr><th>Tool</th><th>Icon</th><th>Description</th></tr>
+  <tr><td>Trend Line</td><td>Diagonal line icon</td><td>Draw a line between two points</td></tr>
+  <tr><td>Horizontal Line</td><td>Horizontal line icon</td><td>Draw a horizontal price level line</td></tr>
+  <tr><td>Vertical Line</td><td>Vertical line icon</td><td>Draw a vertical time marker line</td></tr>
+  <tr><td>Rectangle</td><td>Rectangle icon</td><td>Draw a rectangle area</td></tr>
+  <tr><td>Circle</td><td>Circle icon</td><td>Draw a circle/ellipse</td></tr>
+  <tr><td>Text Label</td><td><strong>A</strong></td><td>Place a text annotation on the chart</td></tr>
+</table>
+<p>Drawing objects can be selected and dragged after placement. Use their handles to resize.</p>
+
+<!-- Style Controls -->
+<h2 id="style-controls">Color, Style &amp; Font Controls</h2>
+<p>The right side of the toolbar contains style controls that affect newly drawn objects:</p>
+
+<h3>Color Palette</h3>
+<p>Click a color swatch to set the drawing color. The active color shows a highlighted border. Available colors include blues, reds, greens, yellows, purples, oranges, cyans, pinks, and grays/white/black.</p>
+
+<h3>Line Style</h3>
+<p>Choose between three line dash patterns:</p>
+<ul>
+  <li><strong>Solid</strong> &mdash; continuous line</li>
+  <li><strong>Dashed</strong> &mdash; long dashes</li>
+  <li><strong>Dotted</strong> &mdash; small dots</li>
+</ul>
+
+<h3>Line Width</h3>
+<p>Choose from 1px, 2px, 3px, or 4px line thickness.</p>
+
+<h3>Font</h3>
+<p>The font dropdown on the far right sets the typeface for text labels. Options include Arial, Helvetica, Verdana, Times New Roman, Courier New, and more.</p>
+
+<!-- Planet Lines -->
+<h2 id="planet-lines">Planet Lines (Astro)</h2>
+<p>Planet lines are a unique feature that overlays astrological planet position curves onto your price chart. These are used in financial astrology to identify potential price correlations with planetary cycles.</p>
+
+<h3>Adding a Planet Line</h3>
+<ol>
+  <li>Click the <strong>planet line icon</strong> (curved line) in the toolbar, or use <strong>Insert &gt; Planet Line...</strong></li>
+  <li>In the dialog, select a planet (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, etc.)</li>
+  <li>Configure the calculation parameters (coordinate type, scaling)</li>
+  <li>Click <strong>Add</strong> to overlay the planet line on the active chart</li>
+</ol>
+
+<h3>Ephemeris Providers</h3>
+<p>Planet positions are calculated using one of two backends:</p>
+<ul>
+  <li><strong>Swiss Ephemeris (WASM)</strong> &mdash; high-precision astronomical calculations loaded as a WebAssembly module. This is the default when available.</li>
+  <li><strong>Equations</strong> &mdash; simplified mathematical approximations used as a fallback if Swiss Ephemeris fails to load.</li>
+</ul>
+<p>You can switch providers in <strong>Edit &gt; Preferences</strong>. The current provider is shown in the status bar.</p>
+
+<!-- Multi-Chart -->
+<h2 id="multi-chart">Multi-Chart Workspace</h2>
+<p>You can open multiple charts simultaneously. Each chart appears as a tab at the bottom of the workspace.</p>
+
+<h3>Tab Bar</h3>
+<ul>
+  <li>Click a tab to switch to that chart</li>
+  <li>Click the <strong>&times;</strong> on a tab to close it</li>
+  <li>The active tab is highlighted</li>
+</ul>
+
+<h3>Window Layouts</h3>
+<p>Use the <strong>Window</strong> menu to arrange multiple charts:</p>
+<table>
+  <tr><th>Layout</th><th>Description</th></tr>
+  <tr><td><strong>Cascade</strong></td><td>Overlapping windows offset diagonally</td></tr>
+  <tr><td><strong>Tile Horizontal</strong></td><td>Charts stacked top-to-bottom</td></tr>
+  <tr><td><strong>Tile Vertical</strong></td><td>Charts arranged side-by-side</td></tr>
+</table>
+<p>In single-chart mode (maximized), the active chart fills the entire workspace area.</p>
+
+<!-- Time Modes -->
+<h2 id="time-modes">Time Modes &amp; Session Bands</h2>
+
+<h3>Time Modes</h3>
+<p>Charts support two time display modes, toggled with <kbd>T</kbd> or the compress button in the chart header:</p>
+<ul>
+  <li><strong>Natural Time</strong> &mdash; bars are positioned proportionally by timestamp. Gaps appear between trading sessions (weekends, overnight). This gives a true time-proportional view.</li>
+  <li><strong>Compressed Time</strong> &mdash; bars are packed sequentially by index with no gaps. This is the traditional charting view that maximizes data density.</li>
+</ul>
+
+<h3>Session Bands</h3>
+<p>In Natural Time mode, colored background bands highlight different trading periods:</p>
+<ul>
+  <li><strong>Sleep band</strong> (reddish) &mdash; overnight period (00:00 &ndash; 05:45 local time)</li>
+  <li><strong>Lunch band</strong> (bluish) &mdash; midday period (06:00 &ndash; 11:15 local time)</li>
+</ul>
+<p>Toggle session bands via <strong>View &gt; Show/Hide Session Bands</strong>.</p>
+
+<!-- Live Streaming -->
+<h2 id="live-streaming">Live Streaming</h2>
+<p>When connected to TWS via the bridge server, you can receive real-time price updates:</p>
+<ol>
+  <li>Load a chart from a TWS-sourced cache file</li>
+  <li>Click the <strong>LIVE</strong> button in the top-right of the menu bar</li>
+  <li>The button turns green with a pulsing dot when streaming is active</li>
+  <li>New bars will appear in real time as they arrive</li>
+  <li>Click <strong>LIVE</strong> again to stop streaming</li>
+</ol>
+<p>The status bar shows <strong>LIVE</strong> when streaming is active for the current chart.</p>
+
+<!-- File Operations -->
+<h2 id="file-operations">File Operations</h2>
+<table>
+  <tr><th>Action</th><th>Menu</th><th>Shortcut</th><th>Description</th></tr>
+  <tr><td>New Chart</td><td>File &gt; New Chart</td><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Create a blank chart</td></tr>
+  <tr><td>Import / Load</td><td>File &gt; Import / Load...</td><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>Open the import dialog (TWS search or cache)</td></tr>
+  <tr><td>Open File</td><td>File &gt; Open File...</td><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open a .uchart file</td></tr>
+  <tr><td>Save</td><td>File &gt; Save</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save current chart as .uchart file (downloads)</td></tr>
+</table>
+<p>The <strong>.uchart</strong> file format is a JSON file that preserves all chart data, settings, drawing objects, and planet lines.</p>
+
+<!-- Preferences -->
+<h2 id="preferences">Preferences</h2>
+<p>Open via <strong>Edit &gt; Preferences...</strong></p>
+
+<h3>Ephemeris Provider</h3>
+<p>Choose between Swiss Ephemeris (high-precision WASM) and Equations (mathematical fallback). The WASM status badge shows whether the Swiss Ephemeris module loaded successfully.</p>
+
+<h3>TWS Connection</h3>
+<p>Shows the configured TWS bridge server host and port (read-only). The bridge server must be started separately.</p>
+
+<!-- Keyboard Shortcuts -->
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
+<table>
+  <tr><th>Shortcut</th><th>Action</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>Open Import / Load dialog</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>New chart</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open .uchart file</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save chart</td></tr>
+  <tr><td><kbd>T</kbd></td><td>Toggle Natural / Compressed time mode</td></tr>
+  <tr><td><kbd>+</kbd> / Scroll Up</td><td>Zoom in</td></tr>
+  <tr><td><kbd>&minus;</kbd> / Scroll Down</td><td>Zoom out</td></tr>
+  <tr><td>Click + Drag</td><td>Pan chart left/right</td></tr>
+</table>
+
+<!-- Menu Reference -->
+<h2 id="menus">Menu Reference</h2>
+
+<h3>File</h3>
+<ul>
+  <li>New Chart, Import / Load..., Open File..., Save, Save As...</li>
+</ul>
+
+<h3>Edit</h3>
+<ul>
+  <li>Undo, Redo, Delete, Select All, Preferences...</li>
+</ul>
+
+<h3>Insert</h3>
+<ul>
+  <li>Line, Horizontal Line, Vertical Line, Rectangle, Circle, Text, Planet Line...</li>
+</ul>
+
+<h3>View</h3>
+<ul>
+  <li>Toggle time mode, session bands, volume, crosshair, grid; zoom controls</li>
+</ul>
+
+<h3>Window</h3>
+<ul>
+  <li>Cascade, Tile Horizontal, Tile Vertical</li>
+</ul>
+
+<h3>Help</h3>
+<ul>
+  <li>Documentation (opens this page), Load Sample: ZS Daily, Load Sample: ZS 5-min, About UltraChartWeb</li>
+</ul>
+
+<footer id="app-footer"></footer>
+
+</div>
+<script type="module">
+  import { APP_NAME, APP_VERSION } from '/src/constants.ts';
+  document.getElementById('app-title').textContent = APP_NAME + ' Help';
+  document.getElementById('app-version').textContent = 'Version ' + APP_VERSION;
+  document.getElementById('app-footer').innerHTML = '&copy; 2026 UltraFish &mdash; ' + APP_NAME + ' v' + APP_VERSION;
+  document.title = APP_NAME + ' Help';
+</script>
+</body>
+</html>
