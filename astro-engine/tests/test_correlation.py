@@ -1,9 +1,5 @@
 """Tests for the correlation scanner."""
 
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from datetime import datetime, timezone
 import numpy as np
 import pytest
@@ -100,6 +96,68 @@ class TestSyntheticCorrelation:
 
         # Composite score should be low for random data
         assert result.composite_score < 0.5, f"Score too high for random data: {result.composite_score}"
+
+
+class TestEdgeCases:
+    """Edge cases: NaN, Inf, constant series, zero-price bars."""
+
+    def test_constant_price_series(self):
+        """Constant close prices should not crash and return low correlation."""
+        start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        end = datetime(2024, 12, 31, tzinfo=timezone.utc)
+
+        curve = compute_phase_curve(
+            Planet.MERCURY, Coordinate.LATITUDE, Frame.GEO,
+            start, end, interval_minutes=1440.0,
+        )
+
+        n = len(curve.values)
+        dates = pd.date_range(start, periods=n, freq="1D", tz=timezone.utc)
+        df = pd.DataFrame({
+            "open": np.full(n, 100.0),
+            "high": np.full(n, 100.0),
+            "low": np.full(n, 100.0),
+            "close": np.full(n, 100.0),
+            "volume": np.ones(n) * 1000,
+        }, index=dates)
+
+        market = _process_market_data(df, "CONST", "daily")
+        result = correlate(curve, market)
+        assert np.isfinite(result.pearson_r)
+        assert np.isfinite(result.composite_score)
+
+    def test_nan_in_price(self):
+        """NaN values in close should be handled gracefully."""
+        market = generate_synthetic(days=365)
+        # Inject NaN into a few close values
+        market.df.loc[market.df.index[10:15], "close"] = np.nan
+
+        start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        end = datetime(2024, 12, 31, tzinfo=timezone.utc)
+        curve = compute_phase_curve(
+            Planet.MERCURY, Coordinate.LATITUDE, Frame.GEO,
+            start, end,
+        )
+
+        # Should not raise — NaN handling is in _align_series / numpy
+        result = correlate(curve, market)
+        assert isinstance(result.composite_score, float)
+
+    def test_zero_close_prices(self):
+        """Zero close prices should not cause division by zero in returns."""
+        n = 100
+        dates = pd.date_range("2024-01-01", periods=n, freq="1D", tz=timezone.utc)
+        close = np.full(n, 50.0)
+        close[20] = 0.0  # inject zero
+
+        df = pd.DataFrame({
+            "open": close, "high": close + 1, "low": close - 1,
+            "close": close, "volume": np.ones(n) * 1000,
+        }, index=dates)
+
+        market = _process_market_data(df, "ZERO_TEST", "daily")
+        # Returns should not contain Inf
+        assert np.all(np.isfinite(market.returns))
 
 
 class TestScanAllCurves:

@@ -42,3 +42,8 @@ release/
 out/
 
 legacy/
+
+# Generated reports
+invest/scripts/premarket_report.md
+invest/scripts/postclose_report.md
+invest/scripts/*.log

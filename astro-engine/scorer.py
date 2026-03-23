@@ -12,10 +12,12 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
+import swisseph as swe
 
 from phase_curves import (
     Planet, Coordinate, Frame, PhaseCurve,
     compute_phase_curve, jd_to_datetime, datetime_to_jd,
+    PLANET_MAP, COORD_MAP, FRAME_MAP,
 )
 from trainer import TrainedProfile, CurveProfile
 
@@ -128,7 +130,6 @@ def _find_next_turning_point(
         Frame.TOPO: 0x20,   # FLG_TOPOCTR
     }
 
-    import swisseph as swe
     if frame == Frame.TOPO and observer:
         swe.set_topo(observer[0], observer[1], observer[2])
 
@@ -151,9 +152,9 @@ def _find_next_turning_point(
 # Main scoring function
 # ---------------------------------------------------------------------------
 
-_PLANET_MAP = {"MERCURY": Planet.MERCURY, "MOON": Planet.MOON}
-_COORD_MAP = {"LONGITUDE": Coordinate.LONGITUDE, "LATITUDE": Coordinate.LATITUDE}
-_FRAME_MAP = {"GEO": Frame.GEO, "HELIO": Frame.HELIO, "TOPO": Frame.TOPO}
+_PLANET_MAP = PLANET_MAP
+_COORD_MAP = COORD_MAP
+_FRAME_MAP = FRAME_MAP
 
 
 def score(
@@ -197,7 +198,6 @@ def score(
             continue
 
         # Compute current value and speed
-        import swisseph as swe
         flags_map = {Frame.GEO: 0, Frame.HELIO: swe.FLG_HELCTR, Frame.TOPO: swe.FLG_TOPOCTR}
 
         if frame == Frame.TOPO and observer:

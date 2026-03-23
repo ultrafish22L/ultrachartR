@@ -9,7 +9,8 @@ Outputs a trained "profile" (JSON) that the scorer uses at runtime.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
+import logging
+from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -20,8 +21,14 @@ from phase_curves import (
     Planet, Coordinate, Frame, PhaseCurve,
     compute_phase_curve, compute_all_curves,
 )
-from market_data import MarketData, load_auto
+from market_data import MarketData, load_auto, _process_market_data
 from correlation import correlate, scan_all_curves, CorrelationResult
+from utils import guess_interval
+
+logger = logging.getLogger(__name__)
+
+# Default window sizes for parameter sweep (bars)
+DEFAULT_WINDOW_SIZES = [10, 15, 20, 30, 50, 75, 100]
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +110,7 @@ def _sweep_windows(
     Returns (best_result, best_window_size).
     """
     if window_sizes is None:
-        window_sizes = [10, 15, 20, 30, 50, 75, 100]
+        window_sizes = DEFAULT_WINDOW_SIZES
 
     best_result = None
     best_window = 20
@@ -116,7 +123,8 @@ def _sweep_windows(
             if best_result is None or result.composite_score > best_result.composite_score:
                 best_result = result
                 best_window = ws
-        except Exception:
+        except (ValueError, RuntimeError) as e:
+            logger.debug("Window %d failed for %s: %s", ws, curve.label, e)
             continue
 
     if best_result is None:
@@ -154,7 +162,6 @@ def _walk_forward_validate(
     train_df = market.df.iloc[:split_idx].copy()
     test_df = market.df.iloc[split_idx:].copy()
 
-    from market_data import _process_market_data
     train_market = _process_market_data(train_df, market.symbol, market.interval)
     test_market = _process_market_data(test_df, market.symbol, market.interval)
 
@@ -166,32 +173,20 @@ def _walk_forward_validate(
 
     train_curve = compute_phase_curve(
         planet, coordinate, frame, train_start, train_end,
-        interval_minutes=_guess_interval(market), observer=observer, use_cache=False,
+        interval_minutes=guess_interval(market), observer=observer, use_cache=False,
     )
     test_curve = compute_phase_curve(
         planet, coordinate, frame, test_start, test_end,
-        interval_minutes=_guess_interval(market), observer=observer, use_cache=False,
+        interval_minutes=guess_interval(market), observer=observer, use_cache=False,
     )
 
     try:
         train_result = correlate(train_curve, train_market, max_lag, window_size)
         test_result = correlate(test_curve, test_market, max_lag, window_size)
         return train_result.composite_score, test_result.composite_score
-    except Exception:
+    except (ValueError, RuntimeError) as e:
+        logger.debug("Walk-forward validation failed: %s", e)
         return 0.0, 0.0
-
-
-def _guess_interval(market: MarketData) -> float:
-    """Guess interval in minutes from market data."""
-    if market.count < 2:
-        return 1440.0
-    # Look at median time difference between bars
-    if hasattr(market.df.index, 'to_series'):
-        diffs = market.df.index.to_series().diff().dropna()
-        if len(diffs) > 0:
-            median_diff = diffs.median()
-            return max(1.0, median_diff.total_seconds() / 60.0)
-    return 1440.0
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +215,7 @@ def train(
     """
     start_dt = market.df.index[0].to_pydatetime().replace(tzinfo=timezone.utc)
     end_dt = market.df.index[-1].to_pydatetime().replace(tzinfo=timezone.utc)
-    interval = _guess_interval(market)
+    interval = guess_interval(market)
 
     print(f"Training profile for {market.symbol} ({market.interval})")
     print(f"  Date range: {start_dt.date()} to {end_dt.date()}")
@@ -277,7 +272,7 @@ def train(
             print(f"    {curve.label}: score={cp.composite_score:.4f}"
                   + (f"  (gen={cp.generalization_ratio:.2f})" if validate else ""))
 
-        except Exception as e:
+        except (ValueError, RuntimeError) as e:
             print(f"    {curve.label}: FAILED ({e})")
 
     # Sort by composite score

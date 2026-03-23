@@ -46,18 +46,40 @@ if (!fs.existsSync(CACHE_DIR)) {
 // ─── Express Setup ─────────────────────────────────────────────────
 
 const app = express();
-app.use(cors({ origin: ['http://127.0.0.1:3000', 'http://127.0.0.1:5050'] }));
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://127.0.0.1:3000,http://127.0.0.1:5050')
+  .split(',').map(s => s.trim());
+app.use(cors({ origin: CORS_ORIGINS }));
 app.use(express.json({ limit: '10mb' }));
 
-// Support /ib prefix — Vite strips it in dev, but Electron serves from same origin
-app.use((req, _res, next) => {
-  if (req.url.startsWith('/ib/')) {
-    req.url = req.url.slice(3);
-  } else if (req.url === '/ib') {
-    req.url = '/';
+// ─── Request validation helpers ──────────────────────────────────
+
+function requireString(val: unknown, name: string): string {
+  if (typeof val !== 'string' || val.trim() === '') {
+    throw new ValidationError(`${name} is required and must be a non-empty string`);
   }
-  next();
-});
+  return val.trim();
+}
+
+function requireNumber(val: unknown, name: string): number {
+  const n = Number(val);
+  if (!Number.isFinite(n)) {
+    throw new ValidationError(`${name} must be a finite number`);
+  }
+  return n;
+}
+
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+// IB routes are mounted on both `/` and `/ib/` so the same handlers work
+// whether accessed directly (Vite proxy strips prefix) or via Electron (same origin).
+const ibRouter = express.Router();
+app.use('/', ibRouter);
+app.use('/ib', ibRouter);
 
 // ─── Agent Setup ──────────────────────────────────────────────────
 
@@ -576,7 +598,7 @@ function calcDuration(startDate: string, barSize: string): string {
 // ─── REST Endpoints ───────────────────────────────────────────────
 
 /** GET /status - Connection status */
-app.get('/status', (_req: Request, res: Response) => {
+ibRouter.get('/status', (_req: Request, res: Response) => {
   res.json({ connected, authenticated: connected });
 });
 
@@ -584,7 +606,7 @@ app.get('/status', (_req: Request, res: Response) => {
  * GET /search?symbol=ZS&secType=FUT&exchange=CBOT
  * Search for contracts matching the given criteria.
  */
-app.get('/search', async (req: Request, res: Response) => {
+ibRouter.get('/search', async (req: Request, res: Response) => {
   try {
     if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
@@ -626,7 +648,7 @@ app.get('/search', async (req: Request, res: Response) => {
  * GET /history?conId=...&duration=2 M&bar=5 mins&rth=0&end=
  * Fetch historical bars for a contract.
  */
-app.get('/history', async (req: Request, res: Response) => {
+ibRouter.get('/history', async (req: Request, res: Response) => {
   try {
     if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
@@ -707,7 +729,7 @@ app.get('/history', async (req: Request, res: Response) => {
  * GET /contractDetails?conId=...
  * Get full contract details for a specific conId.
  */
-app.get('/contractDetails', async (req: Request, res: Response) => {
+ibRouter.get('/contractDetails', async (req: Request, res: Response) => {
   try {
     if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
@@ -747,25 +769,30 @@ app.get('/contractDetails', async (req: Request, res: Response) => {
  * POST /import - Import historical data and create a cache file
  * Body: { conId, symbol, exchange, secType?, lastTradeDate?, interval, barSize, startDate, cachePath? }
  */
-app.post('/import', async (req: Request, res: Response) => {
+ibRouter.post('/import', async (req: Request, res: Response) => {
   try {
     if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
-    const {
-      conId,
-      symbol,
-      exchange,
-      secType = 'FUT',
-      lastTradeDate = '',
-      interval,
-      barSize,
-      startDate,
-      cachePath: requestedPath,
-    } = req.body;
-
-    if (!conId || !symbol || !barSize || !startDate) {
-      return res.status(400).json({ error: 'conId, symbol, barSize, and startDate are required' });
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Request body must be a JSON object' });
     }
+
+    let conId: number, symbol: string, barSize: string, startDate: string;
+    try {
+      conId = requireNumber(body.conId, 'conId');
+      symbol = requireString(body.symbol, 'symbol');
+      barSize = requireString(body.barSize, 'barSize');
+      startDate = requireString(body.startDate, 'startDate');
+    } catch (e) {
+      return res.status(400).json({ error: e instanceof ValidationError ? e.message : 'Invalid request' });
+    }
+
+    const exchange = typeof body.exchange === 'string' ? body.exchange : '';
+    const secType = typeof body.secType === 'string' ? body.secType : 'FUT';
+    const lastTradeDate = typeof body.lastTradeDate === 'string' ? body.lastTradeDate : '';
+    const interval = Number(body.interval) || 0;
+    const requestedPath = typeof body.cachePath === 'string' ? body.cachePath : undefined;
 
     // Generate cache filename
     const cachePath = requestedPath || `${symbol}_${interval > 0 ? interval + 'm' : barSize.replace(/\s+/g, '')}.json`;
@@ -819,7 +846,7 @@ app.post('/import', async (req: Request, res: Response) => {
  * POST /sync - Gap-fill from last cached bar to current time
  * Body: { cachePath }
  */
-app.post('/sync', async (req: Request, res: Response) => {
+ibRouter.post('/sync', async (req: Request, res: Response) => {
   try {
     if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
@@ -900,7 +927,7 @@ app.post('/sync', async (req: Request, res: Response) => {
 /**
  * GET /cache/list - List available cache files
  */
-app.get('/cache/list', (_req: Request, res: Response) => {
+ibRouter.get('/cache/list', (_req: Request, res: Response) => {
   try {
     const files = fs.readdirSync(CACHE_DIR).filter((f) => f.endsWith('.json'));
     const results = files.map((filename) => {
@@ -928,7 +955,7 @@ app.get('/cache/list', (_req: Request, res: Response) => {
 /**
  * GET /cache/load?path=ZSK6_5m.json - Load a cache file
  */
-app.get('/cache/load', (req: Request, res: Response) => {
+ibRouter.get('/cache/load', (req: Request, res: Response) => {
   const cachePath = req.query.path as string;
   if (!cachePath) return res.status(400).json({ error: 'path is required' });
 
@@ -944,7 +971,7 @@ app.get('/cache/load', (req: Request, res: Response) => {
  * POST /feed/start - Start a realtime feed for a cache file
  * Body: { cachePath }
  */
-app.post('/feed/start', (req: Request, res: Response) => {
+ibRouter.post('/feed/start', (req: Request, res: Response) => {
   if (!connected) return res.status(503).json({ error: 'Not connected to TWS' });
 
   const { cachePath } = req.body;
@@ -960,7 +987,7 @@ app.post('/feed/start', (req: Request, res: Response) => {
  * POST /feed/stop - Stop a realtime feed
  * Body: { cachePath }
  */
-app.post('/feed/stop', (req: Request, res: Response) => {
+ibRouter.post('/feed/stop', (req: Request, res: Response) => {
   const { cachePath } = req.body;
   if (!cachePath) return res.status(400).json({ error: 'cachePath is required' });
 
@@ -971,7 +998,7 @@ app.post('/feed/stop', (req: Request, res: Response) => {
 /**
  * GET /feed/stream?cachePath=ZSK6_5m.json - SSE stream for a feed
  */
-app.get('/feed/stream', (req: Request, res: Response) => {
+ibRouter.get('/feed/stream', (req: Request, res: Response) => {
   const cachePath = req.query.cachePath as string;
   if (!cachePath) return res.status(400).json({ error: 'cachePath is required' });
 
@@ -1017,7 +1044,7 @@ app.get('/feed/stream', (req: Request, res: Response) => {
  * GET /stream?conId=...&exchange=...&interval=5&persist=...
  * @deprecated Use /feed/start + /feed/stream instead
  */
-app.get('/stream', (req: Request, res: Response) => {
+ibRouter.get('/stream', (req: Request, res: Response) => {
   if (!connected) {
     return res.status(503).json({ error: 'Not connected to TWS' });
   }

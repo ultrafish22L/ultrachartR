@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
-from scipy import signal, stats
+from scipy import stats
 
-from phase_curves import PhaseCurve, unwrap_longitude, Coordinate
+from phase_curves import PhaseCurve, unwrap_longitude, Coordinate, ZERO_VARIANCE_THRESHOLD
 from market_data import MarketData
 
 
@@ -58,7 +58,7 @@ class CorrelationResult:
     @property
     def stability_score(self) -> float:
         """0-1 score: high correlation that's consistent over time."""
-        if self.rolling_corr_std < 1e-10:
+        if self.rolling_corr_std < ZERO_VARIANCE_THRESHOLD:
             return 0.0
         return max(0, self.rolling_corr_mean) * (1.0 - min(1.0, self.rolling_corr_std))
 
@@ -110,7 +110,12 @@ class CorrelationResult:
 def _align_series(curve: PhaseCurve, market: MarketData) -> tuple[np.ndarray, np.ndarray]:
     """
     Align phase curve values with market close prices by matching
-    Julian Day timestamps. Returns (curve_values, price_series) of equal length.
+    Julian Day timestamps.
+
+    Finds the overlapping time range, masks both series to that range,
+    then linearly interpolates the shorter one to match lengths.
+
+    Returns (curve_values, price_series) of equal length.
     """
     # Find overlapping time range
     curve_jd = curve.timestamps
@@ -151,17 +156,20 @@ def _align_series(curve: PhaseCurve, market: MarketData) -> tuple[np.ndarray, np
 def _compute_lag(curve_vals: np.ndarray, price_vals: np.ndarray,
                  max_lag: int = 20) -> tuple[int, float, float]:
     """
-    Find optimal lag using cross-correlation.
+    Find optimal lag using brute-force cross-correlation over [-max_lag, +max_lag].
+
+    Both series are z-score normalized, then Pearson r is computed at each lag.
+    The lag with the highest absolute correlation wins.
 
     Returns (optimal_lag, correlation_at_lag, p_value).
-    Positive lag = curve leads price.
+    Positive lag means the curve leads price by that many bars.
     """
     # Normalize both series
     cv = (curve_vals - np.mean(curve_vals))
     pv = (price_vals - np.mean(price_vals))
     cv_std = np.std(cv)
     pv_std = np.std(pv)
-    if cv_std < 1e-10 or pv_std < 1e-10:
+    if cv_std < ZERO_VARIANCE_THRESHOLD or pv_std < ZERO_VARIANCE_THRESHOLD:
         return 0, 0.0, 1.0
     cv = cv / cv_std
     pv = pv / pv_std
@@ -217,7 +225,7 @@ def _rolling_correlation(curve_vals: np.ndarray, price_vals: np.ndarray,
     for i in range(window - 1, n):
         c = curve_vals[i - window + 1:i + 1]
         p = price_vals[i - window + 1:i + 1]
-        if np.std(c) < 1e-10 or np.std(p) < 1e-10:
+        if np.std(c) < ZERO_VARIANCE_THRESHOLD or np.std(p) < ZERO_VARIANCE_THRESHOLD:
             corrs[i] = 0.0
         else:
             corrs[i] = np.corrcoef(c, p)[0, 1]
@@ -351,7 +359,7 @@ def scan_all_curves(
         try:
             result = correlate(curve, market, max_lag, window_size)
             results.append(result)
-        except Exception as e:
+        except (ValueError, RuntimeError) as e:
             print(f"  Warning: {curve.label} failed: {e}")
 
     results.sort(key=lambda r: r.composite_score, reverse=True)

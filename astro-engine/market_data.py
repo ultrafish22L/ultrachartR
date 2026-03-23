@@ -92,8 +92,8 @@ def _parse_datetime_index(df: pd.DataFrame) -> pd.DataFrame:
     # Try parsing the existing index
     try:
         df.index = pd.to_datetime(df.index)
-    except Exception:
-        raise ValueError("Could not find or parse datetime column/index")
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Could not find or parse datetime column/index: {e}") from e
 
     return df
 
@@ -171,7 +171,9 @@ def _process_market_data(df: pd.DataFrame, symbol: str, interval: str) -> Market
 
     # Returns (close-to-close percentage change)
     returns = np.zeros(len(close))
-    returns[1:] = np.diff(close) / close[:-1]
+    prev_close = close[:-1]
+    safe_prev = np.where(prev_close != 0, prev_close, np.nan)
+    returns[1:] = np.nan_to_num(np.diff(close) / safe_prev, nan=0.0)
 
     # Direction
     direction = np.zeros(len(close))
@@ -205,7 +207,17 @@ def _detect_swings(df: pd.DataFrame, lookback: int = 5) -> tuple[np.ndarray, np.
     Detect swing highs and lows using N-bar method.
 
     A swing high at bar i means high[i] is the highest high
-    in the window [i-lookback, i+lookback].
+    in the window [i-lookback, i+lookback]. Similarly for lows.
+    Bars within `lookback` of the edges are excluded.
+
+    Parameters
+    ----------
+    df : DataFrame with 'high' and 'low' columns
+    lookback : number of bars to look each side of a candidate
+
+    Returns
+    -------
+    (swing_high_indices, swing_low_indices) as integer numpy arrays.
     """
     if "high" not in df.columns or "low" not in df.columns:
         return np.array([], dtype=int), np.array([], dtype=int)

@@ -8,15 +8,17 @@ Uses pyswisseph (Swiss Ephemeris) for sub-arcsecond precision.
 from __future__ import annotations
 
 import hashlib
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import swisseph as swe
+
+# Threshold below which a standard deviation is treated as zero variance.
+# Used across correlation, phase_curves, and market_data modules.
+ZERO_VARIANCE_THRESHOLD = 1e-10
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -36,6 +38,12 @@ class Frame(Enum):
     GEO = 0          # geocentric (default)
     HELIO = 1        # heliocentric
     TOPO = 2         # topocentric (observer-dependent)
+
+
+# Lookup maps for string -> enum conversion (used by scorer, visualize, bridge)
+PLANET_MAP: dict[str, Planet] = {"MERCURY": Planet.MERCURY, "MOON": Planet.MOON}
+COORD_MAP: dict[str, Coordinate] = {"LONGITUDE": Coordinate.LONGITUDE, "LATITUDE": Coordinate.LATITUDE}
+FRAME_MAP: dict[str, Frame] = {"GEO": Frame.GEO, "HELIO": Frame.HELIO, "TOPO": Frame.TOPO}
 
 
 # Swiss Ephemeris flag for each frame
@@ -92,13 +100,13 @@ class PhaseCurve:
         if method == "zscore":
             mu = np.mean(self.values)
             sigma = np.std(self.values)
-            if sigma < 1e-10:
+            if sigma < ZERO_VARIANCE_THRESHOLD:
                 return np.zeros_like(self.values)
             return (self.values - mu) / sigma
         elif method == "minmax":
             vmin, vmax = np.min(self.values), np.max(self.values)
             rng = vmax - vmin
-            if rng < 1e-10:
+            if rng < ZERO_VARIANCE_THRESHOLD:
                 return np.zeros_like(self.values)
             return (self.values - vmin) / rng
         else:
@@ -126,6 +134,7 @@ class PhaseCurve:
 # ---------------------------------------------------------------------------
 
 # Cache: avoid recomputing identical curves within a session
+_MAX_CACHE_SIZE = 128
 _cache: dict[str, PhaseCurve] = {}
 
 
@@ -233,6 +242,10 @@ def compute_phase_curve(
     )
 
     if use_cache:
+        # Evict oldest entries when cache exceeds limit
+        if len(_cache) >= _MAX_CACHE_SIZE:
+            oldest = next(iter(_cache))
+            del _cache[oldest]
         _cache[key] = curve
 
     return curve
@@ -264,7 +277,7 @@ def compute_all_curves(
                         observer=observer,
                     )
                     curves.append(curve)
-                except Exception as e:
+                except (ValueError, RuntimeError, OSError) as e:
                     print(f"Warning: failed to compute {planet.name} {coord.name} {frame.name}: {e}")
     return curves
 

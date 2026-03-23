@@ -8,6 +8,7 @@ the system "sees" what you see when you overlay curves on charts.
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -19,10 +20,14 @@ from plotly.subplots import make_subplots
 from phase_curves import (
     Planet, Coordinate, Frame, PhaseCurve,
     compute_phase_curve, unwrap_longitude,
+    PLANET_MAP, COORD_MAP, FRAME_MAP, ZERO_VARIANCE_THRESHOLD,
 )
 from market_data import MarketData, load_auto, generate_synthetic
 from trainer import TrainedProfile, CurveProfile
-from correlation import correlate
+from correlation import correlate, _align_series, _rolling_correlation
+from utils import guess_interval
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -97,11 +102,11 @@ def generate_overlay_chart(
     if end_dt.tzinfo is None:
         end_dt = end_dt.replace(tzinfo=timezone.utc)
 
-    interval = _guess_interval(market)
+    interval = guess_interval(market)
 
-    _PLANET_MAP = {"MERCURY": Planet.MERCURY, "MOON": Planet.MOON}
-    _COORD_MAP = {"LONGITUDE": Coordinate.LONGITUDE, "LATITUDE": Coordinate.LATITUDE}
-    _FRAME_MAP = {"GEO": Frame.GEO, "HELIO": Frame.HELIO, "TOPO": Frame.TOPO}
+    _PLANET_MAP = PLANET_MAP
+    _COORD_MAP = COORD_MAP
+    _FRAME_MAP = FRAME_MAP
 
     # Create figure with secondary y-axis
     n_curves = len(selected)
@@ -163,8 +168,8 @@ def generate_overlay_chart(
                 planet, coord, frame, start_dt, end_dt,
                 interval_minutes=interval, observer=observer,
             )
-        except Exception as e:
-            print(f"Warning: could not compute {cp.curve_label}: {e}")
+        except (ValueError, RuntimeError) as e:
+            logger.warning("Could not compute %s: %s", cp.curve_label, e)
             continue
 
         # Scale curve to overlay on price range
@@ -175,7 +180,7 @@ def generate_overlay_chart(
         # Normalize to price range
         v_min, v_max = vals.min(), vals.max()
         v_range = v_max - v_min
-        if v_range < 1e-10:
+        if v_range < ZERO_VARIANCE_THRESHOLD:
             continue
 
         # Map curve values to price axis range (with some padding)
@@ -224,7 +229,6 @@ def generate_overlay_chart(
                 result = correlate(curve, market, window_size=cp.best_window_size)
 
                 # Compute rolling correlation series
-                from correlation import _align_series, _rolling_correlation
                 cv, pv = _align_series(curve, market)
                 if coord == Coordinate.LONGITUDE:
                     cv = unwrap_longitude(cv)
@@ -242,8 +246,8 @@ def generate_overlay_chart(
                     ),
                     row=2, col=1,
                 )
-            except Exception:
-                pass
+            except (ValueError, RuntimeError) as e:
+                logger.debug("Correlation band failed for %s: %s", cp.curve_label, e)
 
     # Zero line in correlation panel
     fig.add_hline(y=0, line_dash="dash", line_color="gray", row=2, col=1)
@@ -271,16 +275,6 @@ def generate_overlay_chart(
     fig.write_html(output_path)
     print(f"Chart saved to {output_path}")
     return output_path
-
-
-def _guess_interval(market: MarketData) -> float:
-    if market.count < 2:
-        return 1440.0
-    diffs = market.df.index.to_series().diff().dropna()
-    if len(diffs) > 0:
-        median_diff = diffs.median()
-        return max(1.0, median_diff.total_seconds() / 60.0)
-    return 1440.0
 
 
 # ---------------------------------------------------------------------------
@@ -313,7 +307,7 @@ def quick_chart(
     if end_dt.tzinfo is None:
         end_dt = end_dt.replace(tzinfo=timezone.utc)
 
-    interval = _guess_interval(market)
+    interval = guess_interval(market)
 
     fig = go.Figure()
 
@@ -341,7 +335,8 @@ def quick_chart(
                         planet, coord, frame, start_dt, end_dt,
                         interval_minutes=interval, observer=observer,
                     )
-                except Exception:
+                except (ValueError, RuntimeError) as e:
+                    logger.debug("Skipping %s %s %s: %s", planet.name, coord.name, frame.name, e)
                     continue
 
                 vals = curve.values.copy()
@@ -350,7 +345,7 @@ def quick_chart(
 
                 v_min, v_max = vals.min(), vals.max()
                 v_range = v_max - v_min
-                if v_range < 1e-10:
+                if v_range < ZERO_VARIANCE_THRESHOLD:
                     continue
 
                 scaled = price_min + (vals - v_min) / v_range * price_range
